@@ -620,7 +620,7 @@
 ; (a 1 b 2 c 3)
 ; user=> (actualizar-amb () 'b 7)
 ; (b 7)
-(defn actualizar-amb [x, y]
+(defn actualizar-amb [x y]
 
   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion.")
@@ -629,10 +629,16 @@
 ; 3
 ; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
 ; (;ERROR: unbound variable: f)
-(defn buscar [x, y]
+(defn buscar [key amb]
 
   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
-   y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra.")
+   y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
+  (let [
+        keys (for [x (range 0 (count amb)) :when (even? x)] (list (nth amb x) x))
+        matches (filter (fn [k] (= (first k) key)) keys)
+        ]
+    (if (> (count matches) 0) (nth amb (inc (second (first matches)))) (print "(;ERROR: unbound variable: f)"))
+  ))
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
 ; true

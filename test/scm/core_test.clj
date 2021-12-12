@@ -129,25 +129,45 @@
 
   (testing "case 1"
     (let [
-          input (list (symbol ";ERROR:") 'mal 'hecho)
+          amb (list (symbol ";ERROR:") 'mal 'hecho)
           expected true
-          res (error? input)]
+          res (error? amb)]
           
       (is (= res expected))))
   
   (testing "case 2"
     (let [
-          input (list 'mal 'hecho)
+          amb (list 'mal 'hecho)
           expected false
-          res (error? input)]
+          res (error? amb)]
           
       (is (= res expected))))
   
   (testing "case 3"
     (let [
-          input (list (symbol ";WARNING:") 'mal 'hecho)
+          amb (list (symbol ";WARNING:") 'mal 'hecho)
           expected true
-          res (error? input)]
+          res (error? amb)]
           
+      (is (= res expected))))
+)
+
+(deftest buscar-test
+
+  (testing "case 1"
+    (let [
+          key 'c
+          amb '(a 1 b 2 c 3 d 4 e 5)
+          expected 3
+          res (buscar key amb)]
+          
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [key 'f
+          amb '(a 1 b 2 c 3 d 4 e 5)
+          expected "(;ERROR: unbound variable: f)"
+          res (with-out-str (buscar key amb))]
+
       (is (= res expected))))
 )
