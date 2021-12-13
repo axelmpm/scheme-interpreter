@@ -351,3 +351,63 @@
 
       (is (= res expected))))
 )
+
+(deftest fnc-equal?-test
+
+  (testing "case 1"
+    (let [input '()
+          expected (symbol "#t")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [input '(A)
+          expected (symbol "#t")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [input '(A a)
+          expected (symbol "#t")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [input '(A a A)
+          expected (symbol "#t")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [input '(A a A a)
+          expected (symbol "#t")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 6"
+    (let [input '(A a A B)
+          expected (symbol "#f")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [input '(1 1 1 1)
+          expected (symbol "#t")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+  (testing "case 8"
+    (let [input '(1 1 2 1)
+          expected (symbol "#f")
+          res (fnc-equal? input)]
+
+      (is (= res expected))))
+  
+)

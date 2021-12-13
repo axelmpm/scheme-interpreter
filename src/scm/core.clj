@@ -790,9 +790,24 @@
 ; #t
 ; user=> (fnc-equal? '(1 1 2 1))
 ; #f
-(defn fnc-equal? [x]
+(defn fnc-equal? [input]
 
-  "Compara elementos. Si son iguales, devuelve #t. Si no, #f.")
+  "Compara elementos. Si son iguales, devuelve #t. Si no, #f."
+
+  (cond 
+    (empty? input) (symbol "#t")
+    (= (count input) 1) (symbol "#t")
+    :else
+      (let [
+            different 'DIFFERENT
+            reducer (fn [a b] (if (igual? a b) a different))
+            res (reduce reducer input)
+          ]
+      (if (= res different) (symbol "#f") (symbol "#t"))
+      )
+  )
+)
+  
 
 ; user=> (fnc-read ())
 ; (hola
