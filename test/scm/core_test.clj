@@ -243,3 +243,20 @@
 
       (is (= res expected))))
 )
+
+(deftest restaurar-bool-test
+
+  (testing "case 1"
+    (let [string "(and (or #F #f #t #T) #T)"
+          expected "(and (or #F #f #t #T) #T)"
+          res (restaurar-bool (read-string (proteger-bool-en-str string)))]
+
+      (is (= res expected))))
+
+  (testing "case 2"
+    (let [string "(and (or %F %f %t %T) %T)"
+          expected "(and (or #F #f #t #T) #T)"
+          res (restaurar-bool (read-string string))]
+
+      (is (= res expected))))
+)

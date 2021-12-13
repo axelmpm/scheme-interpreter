@@ -725,7 +725,16 @@
 ; (and (or #F #f #t #T) #T)
 (defn restaurar-bool [string]
 
-  "Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas).")
+  "Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas)."
+  
+    (let [
+          string (str string)
+          string (replace-string-with string \% "%t" "#t")
+          string (replace-string-with string \% "%T" "#T")
+          string (replace-string-with string \% "%f" "#f")
+          string (replace-string-with string \% "%F" "#F")]
+      string)
+  )
 
 ; user=> (igual? 'if 'IF)
 ; true
