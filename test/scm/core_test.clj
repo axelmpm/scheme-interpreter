@@ -424,7 +424,7 @@
 
   (testing "case 2"
     (let [args '(1)
-          expected (generar-mensaje-error :io-ports-not-implemented fnc-read)
+          expected (generar-mensaje-error :io-ports-not-implemented read)
           res (fnc-read args)]
 
       (is (= res expected))))
@@ -440,6 +440,66 @@
     (let [args '(1 2 3)
           expected (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)
           res (fnc-read args)]
+
+      (is (= res expected))))
+
+)
+
+(deftest fnc-sumar-test
+
+  (testing "case 1"
+    (let [args '()
+          expected 0
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [args '(3)
+          expected 3
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [args '(3 4)
+          expected 7
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [args '(3 4 5)
+          expected 12
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [args '(3 4 5 6)
+          expected 18
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 6"
+    (let [args '(A 4 5 6)
+          expected (generar-mensaje-error :wrong-type-arg1 + 'A)
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [args '(3 A 5 6)
+          expected (generar-mensaje-error :wrong-type-arg2 + 'A)
+          res (fnc-sumar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 8"
+    (let [args '(3 4 A 6)
+          expected (generar-mensaje-error :wrong-type-arg2 + 'A)
+          res (fnc-sumar args)]
 
       (is (= res expected))))
 

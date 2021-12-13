@@ -624,21 +624,21 @@
 
 (defn find-key [amb key]
   (let [matches (match-by-element (get-keys-and-index amb) key)]
-    (if (not (empty? matches)) (first matches) -1))
-)
+    (if (not (empty? matches)) (first matches) -1)))
+
 
 (defn replace-val [amb key val]
   (let [
         key-idx (find-key amb key)
         n (count amb)
-        tail-amount-after-key-val (- (- n key-idx) 2)
-      ]
+        tail-amount-after-key-val (- (- n key-idx) 2)]
+      
     (if (pos? key-idx) #_{:clj-kondo/ignore [:type-mismatch]}
         (concat (take key-idx amb) (list key val) (take-last tail-amount-after-key-val amb))
-        (amb)
-    )
-  )
-)
+        (amb))))
+    
+  
+
 
 (defn actualizar-amb [amb key val]
 
@@ -676,28 +676,36 @@
 
   (if (list? arg) 
     (or (= (symbol ";ERROR:") (first arg)) (= (symbol ";WARNING:") (first arg)))
-    false
-  )
-)
-
+    false))
+  
 (defn parse-string
   ([string] (seq string))
 
   ([special string]
-  (let [string (seq string)
-        n (count string)]
-    (filter (fn [x] (not (empty? x)))
-            (for [i (range 0 n)]
-              (let [
-                    e (nth string i)
-                    prev-idx (dec i)
-                    sig-idx (inc i)
-                    prev (if (>= prev-idx 0) (nth string prev-idx) e)
-                    sig (if (< sig-idx n) (nth string sig-idx) e)]
-                (cond
-                  (= e special) (apply str (list special sig))
-                  (= prev special) '()
-                  :else (str e))))))))
+     (let [
+           string (seq string)
+           n (count string)
+          ]
+       (filter (fn [x] (not (empty? x)))
+               (for [i (range 0 n)]
+                 (let [
+                       e (nth string i)
+                       prev-idx (dec i)
+                       sig-idx (inc i)
+                       prev (if (>= prev-idx 0) (nth string prev-idx) e)
+                       sig (if (< sig-idx n) (nth string sig-idx) e)
+                      ]
+                   (cond
+                     (= e special) (apply str (list special sig))
+                     (= prev special) '()
+                     :else (str e)
+                   )
+                )
+              )
+       )
+     )
+  )
+)
 
 (defn replace-string-with [string special old new]
   (apply str (map (fn [x] (if (= x old) new x)) (parse-string special string))))
@@ -715,11 +723,11 @@
         string (replace-string-with string \# "#t" "%t")
         string (replace-string-with string \# "#T" "%T")
         string (replace-string-with string \# "#f" "%f")
-        string (replace-string-with string \# "#F" "%F")
-        ]
-    string
-    )
-)
+        string (replace-string-with string \# "#F" "%F")]
+        
+    string))
+    
+
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)
@@ -735,8 +743,8 @@
           string (replace-string-with string \% "%T" "#T")
           string (replace-string-with string \% "%f" "#f")
           string (replace-string-with string \% "%F" "#F")]
-      string)
-  )
+      string))
+  
 
 ; user=> (igual? 'if 'IF)
 ; true
@@ -751,15 +759,15 @@
 (defn igual? [x, y]  
   "Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)"
   (cond
-    (and (symbol? x) (symbol? y)) (= (clojure.string/lower-case (str x)) (clojure.string/lower-case (str y)) )
+    (and (symbol? x) (symbol? y)) (= (clojure.string/lower-case (str x)) (clojure.string/lower-case (str y)))
     (and (list? x) (list? y)) 
     (if (= (count x) (count y))
       (every? (fn [e] (igual? (first e) (second e))) (map (fn [a b] (list a b) ) x y))
-      false
-    )
-    :else (= x y)
-  )
-)
+      false)
+    
+    :else (= x y)))
+  
+
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
 ; (1 2 3 4 5 6 7)
@@ -773,8 +781,8 @@
   (let [not-list (filter (fn [x] (not (list? x))) lists)]
       (if (empty? not-list)
         (reduce (fn [a b] (concat a b)) lists)
-        (generar-mensaje-error :wrong-type-arg fnc-append (first not-list))))
-)
+        (generar-mensaje-error :wrong-type-arg fnc-append (first not-list)))))
+
 
 ; user=> (fnc-equal? ())
 ; #t
@@ -803,13 +811,12 @@
       (let [
             different 'DIFFERENT
             reducer (fn [a b] (if (igual? a b) a different))
-            res (reduce reducer input)
-          ]
-      (if (= res different) (symbol "#f") (symbol "#t"))
-      )
+            res (reduce reducer input)] 
+        (if (= res different) (symbol "#f") (symbol "#t")))    
   )
 )
-  
+
+      
 
 ; user=> (fnc-read ())
 ; (hola
@@ -827,10 +834,12 @@
   
   (cond
     (empty? args) (leer-entrada)
-    (= (count args) 1) (generar-mensaje-error :io-ports-not-implemented fnc-read)
+    (= (count args) 1) (generar-mensaje-error :io-ports-not-implemented read)
     (> (count args) 1) (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)
-    )
   )
+)
+    
+  
 
 ; user=> (fnc-sumar ())
 ; 0
@@ -848,9 +857,27 @@
 ; (;ERROR: +: Wrong type in arg2 A)
 ; user=> (fnc-sumar '(3 4 A 6))
 ; (;ERROR: +: Wrong type in arg2 A)
-(defn fnc-sumar [x]
+(defn fnc-sumar [args]
 
-  "Suma los elementos de una lista.")
+  "Suma los elementos de una lista."
+  
+  (if (empty? args) 
+    0
+    (let [
+          non-numeric(filter (fn [x] (not (number? x))) args)
+          first-arg (first args)
+          first-non-numeric (first non-numeric)
+         ]
+          (if (empty? non-numeric)
+              (reduce (fn [a b] (+ a b)) args)
+              (if (number? first-arg)
+                (generar-mensaje-error :wrong-type-arg2 + first-non-numeric)
+                (generar-mensaje-error :wrong-type-arg1 + first-arg)))
+    )
+  )
+)
+    
+  
 
 ; user=> (fnc-restar ())
 ; (;ERROR: -: Wrong number of args given)
