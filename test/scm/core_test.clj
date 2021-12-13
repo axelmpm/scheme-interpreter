@@ -415,9 +415,31 @@
 (deftest fnc-read-test
 
   (testing "case 1"
-    (let [input '()
-          expected (symbol "#t")
-          res (fnc-read input)]
+    (let [args '()
+          input "(hola\nmundo)"
+          expected "(hola mundo)"
+          res (with-in-str input (fnc-read args))]
+
+      (is (= res expected))))
+
+  (testing "case 2"
+    (let [args '(1)
+          expected (generar-mensaje-error :io-ports-not-implemented fnc-read)
+          res (fnc-read args)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [args '(1 2)
+          expected (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)
+          res (fnc-read args)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [args '(1 2 3)
+          expected (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)
+          res (fnc-read args)]
 
       (is (= res expected))))
 

@@ -821,9 +821,16 @@
 ; (;ERROR: Wrong number of args given #<primitive-procedure read>)
 ; user=> (fnc-read '(1 2 3))
 ; (;ERROR: Wrong number of args given #<primitive-procedure read>)
-(defn fnc-read [x]
+(defn fnc-read [args]
 
-  "Devuelve la lectura de un elemento de Scheme desde la terminal/consola.")
+  "Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
+  
+  (cond
+    (empty? args) (leer-entrada)
+    (= (count args) 1) (generar-mensaje-error :io-ports-not-implemented fnc-read)
+    (> (count args) 1) (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)
+    )
+  )
 
 ; user=> (fnc-sumar ())
 ; 0
