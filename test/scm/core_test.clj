@@ -73,7 +73,6 @@
       (is (= read expected)))))    
   
 
-
 (deftest verificar-parentesis-test
 
   (testing "case 1"
@@ -123,8 +122,8 @@
           res (verificar-parentesis input)]
           
       (is (= res expected)))))
-    
   
+
 (deftest error?-test
 
   (testing "case 1"
@@ -783,3 +782,47 @@
           res (fnc-mayor-o-igual args)]
 
       (is (= res expected)))))
+
+(deftest evaluar-escalar-test
+
+  (testing "case 1"
+    (let [key 32
+          amb '(x 6 y 11 z "hola")
+          expected (list key amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [key "chau"
+          amb '(x 6 y 11 z "hola")
+          expected (list key amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
+
+  (testing "case 3"
+    (let [key 'y
+          amb '(x 6 y 11 z "hola")
+          expected (list 11 amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [key 'z
+          amb '(x 6 y 11 z "hola")
+          expected (list "hola" amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [key 'n
+          amb '(x 6 y 11 z "hola")
+          expected (list (generar-mensaje-error :unbound-variable key) amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
+
+)

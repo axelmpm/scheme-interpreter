@@ -636,9 +636,6 @@
     (if (pos? key-idx) #_{:clj-kondo/ignore [:type-mismatch]}
         (concat (take key-idx amb) (list key val) (take-last tail-amount-after-key-val amb))
         (amb))))
-    
-  
-
 
 (defn actualizar-amb [amb key val]
 
@@ -1026,9 +1023,9 @@
 ; ("hola" (x 6 y 11 z "hola"))
 ; user=> (evaluar-escalar 'n '(x 6 y 11 z "hola"))
 ; ((;ERROR: unbound variable: n) (x 6 y 11 z "hola"))
-(defn evaluar-escalar [x, y]
-
-  "Evalua una expresion escalar. Devuelve una lista con el resultado y un ambiente.")
+(defn evaluar-escalar [key amb]
+  "Evalua una expresion escalar. Devuelve una lista con el resultado y un ambiente."
+  (if (symbol? key) (list (buscar key amb) amb) (list key amb)))
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
