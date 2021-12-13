@@ -173,7 +173,7 @@
   (testing "case 2"
     (let [key 'f
           amb '(a 1 b 2 c 3 d 4 e 5)
-          expected "(;ERROR: unbound variable: f)"
+          expected (generar-mensaje-error :unbound-variable key)
           res (buscar key amb)]
 
       (is (= res expected))))
@@ -339,14 +339,14 @@
   
   (testing "case 2"
     (let [lists '((1 2) 3 (4 5) (6 7))
-          expected "(;ERROR: append: Wrong type in arg 3)"
+          expected (generar-mensaje-error :wrong-type-arg fnc-append 3)
           res (fnc-append lists)]
 
       (is (= res expected))))
   
   (testing "case 3"
     (let [lists '((1 2) A (4 5) (6 7))
-          expected "(;ERROR: append: Wrong type in arg A)"
+          expected (generar-mensaje-error :wrong-type-arg fnc-append 'A)
           res (fnc-append lists)]
 
       (is (= res expected))))
@@ -410,4 +410,15 @@
 
       (is (= res expected))))
   
+)
+
+(deftest fnc-read-test
+
+  (testing "case 1"
+    (let [input '()
+          expected (symbol "#t")
+          res (fnc-read input)]
+
+      (is (= res expected))))
+
 )

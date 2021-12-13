@@ -660,7 +660,9 @@
   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
    y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
   (let [matches (match-by-element (get-keys-and-index amb) key)]
-    (if (not (empty? matches)) (nth amb (inc (first matches))) "(;ERROR: unbound variable: f)")))
+    (if (not (empty? matches))
+      (nth amb (inc (first matches)))
+      (generar-mensaje-error :unbound-variable key))))
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
 ; true
@@ -771,7 +773,7 @@
   (let [not-list (filter (fn [x] (not (list? x))) lists)]
       (if (empty? not-list)
         (reduce (fn [a b] (concat a b)) lists)
-        (str "(;ERROR: append: Wrong type in arg " (str (first not-list)) \) )))
+        (generar-mensaje-error :wrong-type-arg fnc-append (first not-list))))
 )
 
 ; user=> (fnc-equal? ())
