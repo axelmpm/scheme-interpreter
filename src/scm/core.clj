@@ -938,9 +938,33 @@
 ; (;ERROR: <: Wrong type in arg2 A)
 ; user=> (fnc-menor '(1 2 A 4))
 ; (;ERROR: <: Wrong type in arg2 A)
-(defn fnc-menor [x]
 
-  "Devuelve #t si los numeros de una lista estan en orden estrictamente creciente; si no, #f.")
+(defn map-boolean [b]
+  (if (= b true) (symbol "#t") (symbol "#f"))
+  )
+
+(defn ady-compare [f args]
+
+    (cond
+      (empty? args) (symbol "#t")
+      (and (= (count args) 1) (number? (first args))) (symbol "#t")
+      :else (let [non-numeric (filter (fn [x] (not (number? x))) args)
+                  first-arg (first args)
+                  first-non-numeric (first non-numeric)
+                  n (dec (count args))]
+              (if (empty? non-numeric)
+                (map-boolean (every? (fn [x] (f (first x) (second x))) (map (fn [a b] (list a b)) (take n args) (take-last n args))))
+                (if (number? first-arg)
+                  (generar-mensaje-error :wrong-type-arg2 f first-non-numeric)
+                  (generar-mensaje-error :wrong-type-arg1 f first-arg)))
+            )
+    )
+)
+
+(defn fnc-menor [args]
+
+  "Devuelve #t si los numeros de una lista estan en orden estrictamente creciente; si no, #f."
+  (ady-compare < args))
 
 ; user=> (fnc-mayor ())
 ; #t
