@@ -633,9 +633,12 @@
         n (count amb)
         tail-amount-after-key-val (- (- n key-idx) 2)]
       
-    (if (pos? key-idx) #_{:clj-kondo/ignore [:type-mismatch]}
-        (concat (take key-idx amb) (list key val) (take-last tail-amount-after-key-val amb))
-        (amb))))
+    (if (>= key-idx 0) #_{:clj-kondo/ignore [:type-mismatch]}
+        (concat (take key-idx amb) (list key val) (take-last tail-amount-after-key-val amb)) 
+        amb
+    )
+  )
+)
 
 (defn actualizar-amb [amb key val]
 
@@ -1043,9 +1046,79 @@
 ; ((;ERROR: define: bad variable (define () 2)) (x 1))
 ; user=> (evaluar-define '(define 2 x) '(x 1))
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
-(defn evaluar-define [x, y]
 
-  "Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion.")
+(defn symbol-or-fn? [arg]
+  (if (symbol? arg)
+    true
+    (if (list? arg)
+      (if (= (count arg) 2)
+        (and (symbol? (first arg)) (symbol? (second arg)))
+        false
+        )
+      false
+      )
+  )
+)
+
+(defn well-formed? [expr]
+  (cond
+    (list? expr) (and (not (empty? expr)) (every? well-formed? expr))
+    :else true
+    )
+  )
+
+(defn well-formed-define-expr? [expr]
+
+  (let [
+        res (list? expr)
+        n (count expr)
+        res (and res (= n 3))
+        res (and res (= (first expr) 'define))
+       ]
+    res
+  )
+)
+
+(defn aux-evaluar-define [expr amb]
+
+  (let [
+        key (nth expr 1)
+        val (nth expr 2)
+  ]
+    (if (symbol? key)
+      (list (symbol "#<unspecified>") (actualizar-amb amb key val))
+      (let [
+            key (first (nth expr 1))
+            args (rest (nth expr 1))
+            body (nth expr 2)
+            val (list 'lambda args body)
+      ]
+        (list (symbol "#<unspecified>") (actualizar-amb amb key val))
+        )
+    )
+    )
+  )
+
+(defn evaluar-define [expr amb]
+
+  "Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
+
+  (let [
+        malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
+        missing-var-error (list (generar-mensaje-error :bad-variable 'define expr) amb)
+        n (count expr)
+        body (take-last (dec n) expr)
+        keys (get-keys body)
+  ]
+   (if (well-formed-define-expr? expr)
+       (if (and (every? well-formed? body) (every? symbol-or-fn? keys))
+         (aux-evaluar-define expr amb)
+         missing-var-error
+       )
+       malformed-expr-error
+   )
+  )
+)
 
 ; user=> (evaluar-if '(if 1 2) '(n 7))
 ; (2 (n 7))
@@ -1063,7 +1136,7 @@
 ; ((;ERROR: if: missing or extra expression (if)) (n 7))
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
-(defn evaluar-if [x, y]
+(defn evaluar-if [expr amb]
 
   "Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado.")
 
@@ -1077,7 +1150,7 @@
 ; (5 (#f #f #t #t))
 ; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
-(defn evaluar-or [x]
+(defn evaluar-or [expr]
 
   "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente.")
 
@@ -1091,7 +1164,7 @@
 ; ((;ERROR: set!: missing or extra expression (set! x 1 2)) (x 0))
 ; user=> (evaluar-set! '(set! 1 2) '(x 0))
 ; ((;ERROR: set!: bad variable 1) (x 0))
-(defn evaluar-set! [x, y]
+(defn evaluar-set! [expr amb]
 
   "Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion.")
 

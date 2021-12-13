@@ -826,3 +826,71 @@
       (is (= res expected))))
 
 )
+
+(deftest evaluar-define-test
+
+  (testing "case 1"
+    (let [expr '(define x 2)
+          amb '(x 1)
+          expected (list (symbol "#<unspecified>") '(x 2))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [expr '(define (f x) (+ x 1))
+          amb '(x 1)
+          expected (list (symbol "#<unspecified>") '(x 1 f (lambda (x) (+ x 1))))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [expr '(define)
+          amb '(x 1)
+          expected (list (generar-mensaje-error :missing-or-extra 'define '(define)) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [expr '(define x)
+          amb '(x 1)
+          expected (list (generar-mensaje-error :missing-or-extra 'define '(define x)) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [expr '(define x 2 3)
+          amb '(x 1)
+          expected (list (generar-mensaje-error :missing-or-extra 'define '(define x 2 3)) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+
+  (testing "case 6"
+    (let [expr '(define ())
+          amb '(x 1)
+          expected (list (generar-mensaje-error :missing-or-extra 'define '(define ())) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [expr '(define () 2)
+          amb '(x 1)
+          expected (list (generar-mensaje-error :bad-variable 'define '(define () 2)) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 8"
+    (let [expr '(define 2 x)
+          amb '(x 1)
+          expected (list (generar-mensaje-error :bad-variable 'define '(define 2 x)) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+
+)
