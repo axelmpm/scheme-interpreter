@@ -260,3 +260,70 @@
 
       (is (= res expected))))
 )
+
+(deftest igual?-test
+
+  (testing "case 1"
+    (let [x 'if
+          y 'IF
+          expected true
+          res (igual? x y)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [x 'if
+          y 'if
+          expected true
+          res (igual? x y)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [x 'IF
+          y 'IF
+          expected true
+          res (igual? x y)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [x 'IF
+          y "IF"
+          expected false
+          res (igual? x y)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [x 6
+          y "6"
+          expected false
+          res (igual? x y)]
+
+      (is (= res expected))))  
+  
+  (testing "case 7"
+    (let [x '(a (b) c)
+          y '(A (B) C)
+          expected true
+          res (igual? x y)]
+
+      (is (= res expected))))
+  
+  (testing "case 8"
+    (let [x (list "asd" 5)
+          y (list "ASD" 5)
+          expected false
+          res (igual? x y)]
+
+      (is (= res expected))))
+  
+  (testing "case 9"
+    (let [x (list "asd" 5)
+          y (list "asd" 5)
+          expected true
+          res (igual? x y)]
+
+      (is (= res expected))))
+)

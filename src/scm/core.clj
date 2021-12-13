@@ -746,9 +746,18 @@
 ; false
 ; user=> (igual? 6 "6")
 ; false
-(defn igual? [x, y]
-
-  "Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)")
+(defn igual? [x, y]  
+  "Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)"
+  (cond
+    (and (symbol? x) (symbol? y)) (= (clojure.string/lower-case (str x)) (clojure.string/lower-case (str y)) )
+    (and (list? x) (list? y)) 
+    (if (= (count x) (count y))
+      (every? (fn [e] (igual? (first e) (second e))) (map (fn [a b] (list a b) ) x y))
+      false
+    )
+    :else (= x y)
+  )
+)
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
 ; (1 2 3 4 5 6 7)
