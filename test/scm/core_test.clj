@@ -129,27 +129,34 @@
 
   (testing "case 1"
     (let [
-          amb (list (symbol ";ERROR:") 'mal 'hecho)
+          arg (list (symbol ";ERROR:") 'mal 'hecho)
           expected true
-          res (error? amb)]
+          res (error? arg)]
           
       (is (= res expected))))
   
   (testing "case 2"
     (let [
-          amb (list 'mal 'hecho)
+          arg (list 'mal 'hecho)
           expected false
-          res (error? amb)]
+          res (error? arg)]
           
       (is (= res expected))))
   
   (testing "case 3"
     (let [
-          amb (list (symbol ";WARNING:") 'mal 'hecho)
+          arg (list (symbol ";WARNING:") 'mal 'hecho)
           expected true
-          res (error? amb)]
+          res (error? arg)]
           
       (is (= res expected))))
+  
+    (testing "case 4"
+      (let [arg 3
+            expected false
+            res (error? arg)]
+
+        (is (= res expected))))
 )
 
 (deftest buscar-test
@@ -167,7 +174,47 @@
     (let [key 'f
           amb '(a 1 b 2 c 3 d 4 e 5)
           expected "(;ERROR: unbound variable: f)"
-          res (with-out-str (buscar key amb))]
+          res (buscar key amb)]
+
+      (is (= res expected))))
+)
+
+(deftest actualizar-amb-test
+
+  (testing "case 1"
+    (let [
+          amb '(a 1 b 2 c 3)
+          key 'd
+          val 4
+          expected '(a 1 b 2 c 3 d 4)
+          res (actualizar-amb amb key val)]
+          
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [amb '(a 1 b 2 c 3)
+          key 'b
+          val 4
+          expected '(a 1 b 4 c 3)
+          res (actualizar-amb amb key val)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [amb '(a 1 b 2 c 3)
+          key 'b
+          val (list (symbol ";ERROR:") 'mal 'hecho)
+          expected '(a 1 b 2 c 3)
+          res (actualizar-amb amb key val)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [amb '()
+          key 'b
+          val 7
+          expected '(b 7)
+          res (actualizar-amb amb key val)]
 
       (is (= res expected))))
 )
