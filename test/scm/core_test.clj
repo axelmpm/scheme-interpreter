@@ -504,3 +504,63 @@
       (is (= res expected))))
 
 )
+
+(deftest fnc-restar-test
+
+  (testing "case 1"
+    (let [args '()
+          expected (generar-mensaje-error :wrong-number-args -)
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [args '(3)
+          expected -3
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [args '(3 4)
+          expected -1
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [args '(3 4 5)
+          expected -6
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [args '(3 4 5 6)
+          expected -12
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 6"
+    (let [args '(A 4 5 6)
+          expected (generar-mensaje-error :wrong-type-arg1 - 'A)
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [args '(3 A 5 6)
+          expected (generar-mensaje-error :wrong-type-arg2 - 'A)
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+  (testing "case 8"
+    (let [args '(3 4 A 6)
+          expected (generar-mensaje-error :wrong-type-arg2 - 'A)
+          res (fnc-restar args)]
+
+      (is (= res expected))))
+  
+)

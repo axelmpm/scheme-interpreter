@@ -895,9 +895,28 @@
 ; (;ERROR: -: Wrong type in arg2 A)
 ; user=> (fnc-restar '(3 4 A 6))
 ; (;ERROR: -: Wrong type in arg2 A)
-(defn fnc-restar [x]
+(defn fnc-restar [args]
 
-  "Resta los elementos de un lista.")
+  "Resta los elementos de un lista."
+  
+    (cond
+      (empty? args) (generar-mensaje-error :wrong-number-args -)
+      (and (= (count args) 1) (number? (first args))) (- 0 (first args))
+      :else (let [
+            non-numeric (filter (fn [x] (not (number? x))) args)
+            first-arg (first args)
+            first-non-numeric (first non-numeric)
+           ]
+        (if (empty? non-numeric)
+          (reduce (fn [a b] (- a b)) args)
+          (if (number? first-arg)
+            (generar-mensaje-error :wrong-type-arg2 - first-non-numeric)
+            (generar-mensaje-error :wrong-type-arg1 - first-arg)
+          )
+        )
+      )
+    )
+  )
 
 ; user=> (fnc-menor ())
 ; #t
