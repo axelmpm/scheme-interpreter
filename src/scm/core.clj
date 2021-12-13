@@ -554,7 +554,7 @@
 
   (if (and
        (and (not (ends_with_space string1)) (not (starts_with_space string2)))
-       (pos? (count string1)))
+       (not (empty? string1)))
     (apply str (concat string1 " " string2))
     (apply str (concat string1 string2))))
 
@@ -620,11 +620,11 @@
   (map (fn [x] (second x)) (filter (fn [x] (= (first x) e)) element-index-list)))
 
 (defn isin? [list e]
-  (pos? (count (match list e))))
+  (not (empty? (match list e))))
 
 (defn find-key [amb key]
   (let [matches (match-by-element (get-keys-and-index amb) key)]
-    (if (pos? (count matches)) (first matches) -1))
+    (if (not (empty? matches)) (first matches) -1))
 )
 
 (defn replace-val [amb key val]
@@ -660,7 +660,7 @@
   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
    y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
   (let [matches (match-by-element (get-keys-and-index amb) key)]
-    (if (pos? (count matches)) (nth amb (inc (first matches))) "(;ERROR: unbound variable: f)")))
+    (if (not (empty? matches)) (nth amb (inc (first matches))) "(;ERROR: unbound variable: f)")))
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
 ; true
@@ -678,20 +678,52 @@
   )
 )
 
+(defn parse-string
+  ([string] (seq string))
+
+  ([special string]
+  (let [string (seq string)
+        n (count string)]
+    (filter (fn [x] (not (empty? x)))
+            (for [i (range 0 n)]
+              (let [
+                    e (nth string i)
+                    prev-idx (dec i)
+                    sig-idx (inc i)
+                    prev (if (>= prev-idx 0) (nth string prev-idx) e)
+                    sig (if (< sig-idx n) (nth string sig-idx) e)]
+                (cond
+                  (= e special) (apply str (list special sig))
+                  (= prev special) '()
+                  :else (str e))))))))
+
+(defn replace-string-with [string special old new]
+  (apply str (map (fn [x] (if (= x old) new x)) (parse-string special string))))
+
 ; user=> (proteger-bool-en-str "(or #F #f #t #T)")
 ; "(or %F %f %t %T)"
 ; user=> (proteger-bool-en-str "(and (or #F #f #t #T) #T)")
 ; "(and (or %F %f %t %T) %T)"
 ; user=> (proteger-bool-en-str "")
 ; ""
-(defn proteger-bool-en-str [x]
-  "Cambia, en una cadena, #t por %t y #f por %f (y sus respectivas versiones en mayusculas), para poder aplicarle read-string.")
+(defn proteger-bool-en-str [string]
+  "Cambia, en una cadena, #t por %t y #f por %f (y sus respectivas versiones en mayusculas), para poder aplicarle read-string."
+  
+  (let [
+        string (replace-string-with string \# "#t" "%t")
+        string (replace-string-with string \# "#T" "%T")
+        string (replace-string-with string \# "#f" "%f")
+        string (replace-string-with string \# "#F" "%F")
+        ]
+    string
+    )
+)
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)
 ; user=> (restaurar-bool (read-string "(and (or %F %f %t %T) %T)") )
 ; (and (or #F #f #t #T) #T)
-(defn restaurar-bool [x]
+(defn restaurar-bool [string]
 
   "Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas).")
 

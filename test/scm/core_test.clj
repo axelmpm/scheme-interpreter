@@ -218,3 +218,28 @@
 
       (is (= res expected))))
 )
+
+(deftest proteger-bool-en-str-test
+
+  (testing "case 1"
+    (let [
+          string "(or #F #f #t #T)"
+          expected "(or %F %f %t %T)"
+          res (proteger-bool-en-str string)]
+          
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [string "(and (or #F #f #t #T) #T)"
+          expected "(and (or %F %f %t %T) %T)"
+          res (proteger-bool-en-str string)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [string ""
+          expected ""
+          res (proteger-bool-en-str string)]
+
+      (is (= res expected))))
+)
