@@ -986,9 +986,10 @@
 ; (;ERROR: >: Wrong type in arg2 A)
 ; user=> (fnc-mayor '(3 2 A 1))
 ; (;ERROR: >: Wrong type in arg2 A)
-(defn fnc-mayor [x]
+(defn fnc-mayor [args]
 
-  "Devuelve #t si los numeros de una lista estan en orden estrictamente decreciente; si no, #f.")
+  "Devuelve #t si los numeros de una lista estan en orden estrictamente decreciente; si no, #f."
+  (ady-compare > args))
 
 ; user=> (fnc-mayor-o-igual ())
 ; #t
@@ -1010,9 +1011,10 @@
 ; (;ERROR: >=: Wrong type in arg2 A)
 ; user=> (fnc-mayor-o-igual '(3 2 A 1))
 ; (;ERROR: >=: Wrong type in arg2 A)
-(defn fnc-mayor-o-igual [x]
+(defn fnc-mayor-o-igual [args]
 
-  "Devuelve #t si los numeros de una lista estan en orden decreciente; si no, #f.")
+  "Devuelve #t si los numeros de una lista estan en orden decreciente; si no, #f."
+  (ady-compare >= args))
 
 ; user=> (evaluar-escalar 32 '(x 6 y 11 z "hola"))
 ; (32 (x 6 y 11 z "hola"))

@@ -638,3 +638,148 @@
       (is (= res expected))))
 
 )
+
+(deftest fnc-mayor-test
+
+  (testing "case 1"
+    (let [args '()
+          expected (symbol "#t")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 2"
+    (let [args '(1)
+          expected (symbol "#t")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 3"
+    (let [args '(1)
+          expected (symbol "#t")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 4"
+    (let [args '(2 1)
+          expected (symbol "#t")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 5"
+    (let [args '(4 3 2 1)
+          expected (symbol "#t")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 6"
+    (let [args '(4 2 2 1)
+          expected (symbol "#f")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 7"
+    (let [args '(4 2 1 4)
+          expected (symbol "#f")
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 8"
+    (let [args '(A 3 2 1)
+          expected (generar-mensaje-error :wrong-type-arg1 > 'A)
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 9"
+    (let [args '(3 A 2 1)
+          expected (generar-mensaje-error :wrong-type-arg2 > 'A)
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+
+  (testing "case 10"
+    (let [args '(3 2 A 1)
+          expected (generar-mensaje-error :wrong-type-arg2 > 'A)
+          res (fnc-mayor args)]
+
+      (is (= res expected))))
+)
+
+(deftest fnc-mayor-o-igual-test
+
+  (testing "case 1"
+    (let [args '()
+          expected (symbol "#t")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 2"
+    (let [args '(1)
+          expected (symbol "#t")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 3"
+    (let [args '(1)
+          expected (symbol "#t")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 4"
+    (let [args '(2 1)
+          expected (symbol "#t")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 5"
+    (let [args '(4 3 2 1)
+          expected (symbol "#t")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 6"
+    (let [args '(4 2 2 1)
+          expected (symbol "#t")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 7"
+    (let [args '(4 2 1 4)
+          expected (symbol "#f")
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 8"
+    (let [args '(A 3 2 1)
+          expected (generar-mensaje-error :wrong-type-arg1 >= 'A)
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 9"
+    (let [args '(3 A 2 1)
+          expected (generar-mensaje-error :wrong-type-arg2 >= 'A)
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected))))
+
+  (testing "case 10"
+    (let [args '(3 2 A 1)
+          expected (generar-mensaje-error :wrong-type-arg2 >= 'A)
+          res (fnc-mayor-o-igual args)]
+
+      (is (= res expected)))))
