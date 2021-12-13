@@ -765,9 +765,14 @@
 ; (;ERROR: append: Wrong type in arg 3)
 ; user=> (fnc-append '( (1 2) A (4 5) (6 7)))
 ; (;ERROR: append: Wrong type in arg A)
-(defn fnc-append [x]
+(defn fnc-append [lists]
 
-  "Devuelve el resultado de fusionar listas.")
+  "Devuelve el resultado de fusionar listas."
+  (let [not-list (filter (fn [x] (not (list? x))) lists)]
+      (if (empty? not-list)
+        (reduce (fn [a b] (concat a b)) lists)
+        (str "(;ERROR: append: Wrong type in arg " (str (first not-list)) \) )))
+)
 
 ; user=> (fnc-equal? ())
 ; #t

@@ -327,3 +327,27 @@
 
       (is (= res expected))))
 )
+
+(deftest fnc-append-test
+
+  (testing "case 1"
+    (let [lists '((1 2) (3) (4 5) (6 7))
+          expected '(1 2 3 4 5 6 7)
+          res (fnc-append lists)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [lists '((1 2) 3 (4 5) (6 7))
+          expected "(;ERROR: append: Wrong type in arg 3)"
+          res (fnc-append lists)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [lists '((1 2) A (4 5) (6 7))
+          expected "(;ERROR: append: Wrong type in arg A)"
+          res (fnc-append lists)]
+
+      (is (= res expected))))
+)
