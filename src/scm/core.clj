@@ -635,10 +635,10 @@
       
     (if (>= key-idx 0) #_{:clj-kondo/ignore [:type-mismatch]}
         (concat (take key-idx amb) (list key val) (take-last tail-amount-after-key-val amb)) 
-        amb
-    )
-  )
-)
+        amb)))
+    
+  
+
 
 (defn actualizar-amb [amb key val]
 
@@ -684,8 +684,8 @@
   ([special string]
      (let [
            string (seq string)
-           n (count string)
-          ]
+           n (count string)]
+          
        (filter (fn [x] (not (empty? x)))
                (for [i (range 0 n)]
                  (let [
@@ -693,19 +693,15 @@
                        prev-idx (dec i)
                        sig-idx (inc i)
                        prev (if (>= prev-idx 0) (nth string prev-idx) e)
-                       sig (if (< sig-idx n) (nth string sig-idx) e)
-                      ]
+                       sig (if (< sig-idx n) (nth string sig-idx) e)]
+                      
                    (cond
                      (= e special) (apply str (list special sig))
                      (= prev special) '()
-                     :else (str e)
-                   )
-                )
-              )
-       )
-     )
+                     :else (str e))))))
   )
 )
+
 
 (defn replace-string-with [string special old new]
   (apply str (map (fn [x] (if (= x old) new x)) (parse-string special string))))
@@ -812,9 +808,9 @@
             different 'DIFFERENT
             reducer (fn [a b] (if (igual? a b) a different))
             res (reduce reducer input)] 
-        (if (= res different) (symbol "#f") (symbol "#t")))    
-  )
-)
+        (if (= res different) (symbol "#f") (symbol "#t")))))    
+  
+
 
       
 
@@ -835,9 +831,9 @@
   (cond
     (empty? args) (leer-entrada)
     (= (count args) 1) (generar-mensaje-error :io-ports-not-implemented read)
-    (> (count args) 1) (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)
-  )
-)
+    (> (count args) 1) (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)))
+  
+
     
   
 
@@ -867,7 +863,7 @@
           non-numeric(filter (fn [x] (not (number? x))) args)
           first-arg (first args)
           first-non-numeric (first non-numeric)
-         ]
+          ]
           (if (empty? non-numeric)
               (reduce (fn [a b] (+ a b)) args)
               (if (number? first-arg)
@@ -876,6 +872,9 @@
     )
   )
 )
+    
+  
+
     
   
 
@@ -903,20 +902,23 @@
       (empty? args) (generar-mensaje-error :wrong-number-args -)
       (and (= (count args) 1) (number? (first args))) (- 0 (first args))
       :else (let [
-            non-numeric (filter (fn [x] (not (number? x))) args)
-            first-arg (first args)
-            first-non-numeric (first non-numeric)
-           ]
+                  non-numeric (filter (fn [x] (not (number? x))) args)
+                  first-arg (first args)
+                  first-non-numeric (first non-numeric)    
+                 ]
         (if (empty? non-numeric)
           (reduce (fn [a b] (- a b)) args)
           (if (number? first-arg)
             (generar-mensaje-error :wrong-type-arg2 - first-non-numeric)
-            (generar-mensaje-error :wrong-type-arg1 - first-arg)
-          )
-        )
-      )
+            (generar-mensaje-error :wrong-type-arg1 - first-arg))
+        ))
     )
-  )
+)
+          
+        
+      
+    
+  
 
 ; user=> (fnc-menor ())
 ; #t
@@ -940,8 +942,8 @@
 ; (;ERROR: <: Wrong type in arg2 A)
 
 (defn map-boolean [b]
-  (if (= b true) (symbol "#t") (symbol "#f"))
-  )
+  (if (= b true) (symbol "#t") (symbol "#f")))
+  
 
 (defn ady-compare [f args]
 
@@ -956,10 +958,10 @@
                 (map-boolean (every? (fn [x] (f (first x) (second x))) (map (fn [a b] (list a b)) (take n args) (take-last n args))))
                 (if (number? first-arg)
                   (generar-mensaje-error :wrong-type-arg2 f first-non-numeric)
-                  (generar-mensaje-error :wrong-type-arg1 f first-arg)))
-            )
-    )
-)
+                  (generar-mensaje-error :wrong-type-arg1 f first-arg))))))
+            
+    
+
 
 (defn fnc-menor [args]
 
@@ -1053,19 +1055,19 @@
     (if (list? arg)
       (if (= (count arg) 2)
         (and (symbol? (first arg)) (symbol? (second arg)))
-        false
-        )
-      false
-      )
-  )
-)
+        false)
+        
+      false)))
+      
+  
+
 
 (defn well-formed? [expr]
   (cond
     (list? expr) (and (not (empty? expr)) (every? well-formed? expr))
-    :else true
-    )
-  )
+    :else true))
+    
+  
 
 (defn well-formed-define-expr? [expr]
 
@@ -1073,31 +1075,31 @@
         res (list? expr)
         n (count expr)
         res (and res (= n 3))
-        res (and res (= (first expr) 'define))
-       ]
-    res
-  )
-)
+        res (and res (= (first expr) 'define))]
+       
+    res))
+  
+
 
 (defn aux-evaluar-define [expr amb]
 
   (let [
         key (nth expr 1)
-        val (nth expr 2)
-  ]
+        val (nth expr 2)]
+  
     (if (symbol? key)
       (list (symbol "#<unspecified>") (actualizar-amb amb key val))
       (let [
             key (first (nth expr 1))
             args (rest (nth expr 1))
             body (nth expr 2)
-            val (list 'lambda args body)
-      ]
-        (list (symbol "#<unspecified>") (actualizar-amb amb key val))
-        )
-    )
-    )
-  )
+            val (list 'lambda args body)]
+      
+        (list (symbol "#<unspecified>") (actualizar-amb amb key val))))))
+        
+    
+    
+  
 
 (defn evaluar-define [expr amb]
 
@@ -1108,17 +1110,17 @@
         missing-var-error (list (generar-mensaje-error :bad-variable 'define expr) amb)
         n (count expr)
         body (take-last (dec n) expr)
-        keys (get-keys body)
-  ]
+        keys (get-keys body)]
+  
    (if (well-formed-define-expr? expr)
        (if (and (every? well-formed? body) (every? symbol-or-fn? keys))
          (aux-evaluar-define expr amb)
-         missing-var-error
-       )
-       malformed-expr-error
-   )
-  )
-)
+         missing-var-error)
+       
+       malformed-expr-error)))
+   
+  
+
 
 ; user=> (evaluar-if '(if 1 2) '(n 7))
 ; (2 (n 7))
@@ -1136,9 +1138,43 @@
 ; ((;ERROR: if: missing or extra expression (if)) (n 7))
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
+
+(defn is-false? [arg]
+  (or (or (= (symbol "#f") arg) (= 0 arg)) false))
+
+(defn well-formed-eval-if? [expr]
+
+  (let [res (list? expr)
+        n (count expr)
+        res (and res (> n 2))
+        res (and res (= (first expr) 'if))]
+    res))
+
+(defn eval-or-set [expr amb]
+  (if (list? expr) (evaluar-set! expr amb) (evaluar-escalar expr amb))
+  )
+
 (defn evaluar-if [expr amb]
 
-  "Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado.")
+  "Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
+  
+  (let [malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'if expr) amb)]
+   (if (well-formed-eval-if? expr)
+     (let [
+           n (count expr)
+           condition (nth expr 1)
+           if-true-val (nth expr 2)
+           if-false-val (if (> n 3) (nth expr 3) nil)]
+     
+       (if (is-false? condition)
+         (if (nil? if-false-val) (list (symbol "#<unspecified>") amb) (eval-or-set if-false-val amb))
+         (eval-or-set if-true-val amb)))
+       
+     
+     malformed-expr-error)))
+   
+  
+
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
@@ -1150,9 +1186,26 @@
 ; (5 (#f #f #t #t))
 ; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
-(defn evaluar-or [expr]
+(defn evaluar-or [expr amb]
 
-  "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente.")
+  "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
+
+  (let [n (count expr)
+        arg1 (if (> n 1) (nth expr 1) nil)
+        arg2 (if (> n 2) (nth expr 2) nil)
+       ]
+    (cond
+     (nil? arg1) (list (symbol "#f") amb)
+     (nil? arg2) (list arg1 amb)
+     :else (cond
+             (and (is-false? arg1) (is-false? arg2)) (list (symbol "#f") amb)
+             (is-false? arg1) (list arg2 amb)
+             :else (list arg1 amb)
+           )
+    )
+  )
+)
+
 
 ; user=> (evaluar-set! '(set! x 1) '(x 0))
 ; (#<unspecified> (x 1))
@@ -1166,7 +1219,24 @@
 ; ((;ERROR: set!: bad variable 1) (x 0))
 (defn evaluar-set! [expr amb]
 
-  "Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion.")
+  "Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
+  
+  (let [n (count expr)
+        key (if (> n 1) (nth expr 1) nil)
+        val (if (> n 2) (nth expr 2) nil)
+        malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'set! expr) amb)
+        missing-var-error (list (generar-mensaje-error :bad-variable 'set! key) amb)
+        unbound-error (list (generar-mensaje-error :unbound-variable key) amb)]
+    (cond
+      (nil? key) malformed-expr-error
+      (nil? val) malformed-expr-error
+      (> n 3) malformed-expr-error
+      (not (symbol? key)) missing-var-error
+      (not (isin? (get-keys amb) key)) unbound-error
+      :else (list (symbol "#<unspecified>") (actualizar-amb amb key val))
+    )    
+  )
+)
 
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.

@@ -894,3 +894,158 @@
       (is (= res expected))))
 
 )
+
+(deftest evaluar-if-test
+
+  (testing "case 1"
+    (let [expr '(if 1 2)
+          amb '(n 7)
+          expected '(2 (n 7))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [expr '(if 1 n)
+          amb '(n 7)
+          expected '(7 (n 7))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [expr '(if 1 n 8)
+          amb '(n 7)
+          expected '(7 (n 7))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [expr (list 'if (symbol "#f") 'n)
+          amb (list 'n 7 (symbol "#f") (symbol "#f"))
+          expected (list (symbol "#<unspecified>") (list 'n 7 (symbol "#f") (symbol "#f")))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [expr (list 'if (symbol "#f") 'n 8)
+          amb (list 'n 7 (symbol "#f") (symbol "#f"))
+          expected (list 8 (list 'n 7 (symbol "#f") (symbol "#f")))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 6"
+    (let [expr (list 'if (symbol "#f") 'n '(set! n 9))
+          amb (list 'n 7 (symbol "#f") (symbol "#f"))
+          expected (list (symbol "#<unspecified>") (list 'n 9 (symbol "#f") (symbol "#f")))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [expr '(if)
+          amb '(n 7)
+          expected (list (generar-mensaje-error :missing-or-extra 'if '(if)) '(n 7))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 8"
+    (let [expr '(if 1)
+          amb '(n 7)
+          expected (list (generar-mensaje-error :missing-or-extra 'if '(if 1)) '(n 7))
+          res (evaluar-if expr amb)]
+
+      (is (= res expected))))
+  
+)
+
+(deftest evaluar-or-test
+
+  (testing "case 1"
+    (let [expr (list 'or)
+          amb (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t"))
+          expected (list (symbol "#f") (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
+          res (evaluar-or expr amb)]
+
+      (is (= res expected))))
+  
+    (testing "case 2"
+      (let [expr (list 'or (symbol "#t"))
+            amb (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t"))
+            expected (list (symbol "#t") (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
+            res (evaluar-or expr amb)]
+
+        (is (= res expected))))
+  
+  (testing "case 3"
+    (let [expr (list 'or 7)
+          amb (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t"))
+          expected (list 7 (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
+          res (evaluar-or expr amb)]
+
+      (is (= res expected))))
+    
+  (testing "case 4"
+    (let [expr (list 'or (symbol "#f") 5)
+          amb (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t"))
+          expected (list 5 (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
+          res (evaluar-or expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [expr (list 'or (symbol "#f"))
+          amb (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t"))
+          expected (list (symbol "#f") (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
+          res (evaluar-or expr amb)]
+
+      (is (= res expected))))
+)
+
+(deftest evaluar-set!-test
+
+  (testing "case 1"
+    (let [expr '(set! x 1)
+          amb '(x 0)
+          expected (list (symbol "#<unspecified>") '(x 1))
+          res (evaluar-set! expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [expr '(set! x 1)
+          amb '()
+          expected (list (generar-mensaje-error :unbound-variable 'x) '())
+          res (evaluar-set! expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [expr '(set! x)
+          amb '(x 0)
+          expected (list (generar-mensaje-error :missing-or-extra 'set! '(set! x)) '(x 0))
+          res (evaluar-set! expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [expr '(set! x 1 2)
+          amb '(x 0)
+          expected (list (generar-mensaje-error :missing-or-extra 'set! '(set! x 1 2)) '(x 0))
+          res (evaluar-set! expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [expr '(set! 1 2)
+          amb '(x 0)
+          expected (list (generar-mensaje-error :bad-variable 'set! 1) '(x 0))
+          res (evaluar-set! expr amb)]
+
+      (is (= res expected))))
+  
+)
