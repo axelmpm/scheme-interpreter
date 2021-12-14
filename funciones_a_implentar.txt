@@ -24,3 +24,23 @@ evaluar-set!
 
 evaluar
 aplicar-funcion-primitiva
+
+   (repl (list 'append 'append 'car 'car 'cdr 'cdr 'cond 'cond 'cons 'cons 'define 'define
+               'display 'display 'env 'env 'equal? 'equal? 'eval 'eval 'exit 'exit
+               'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
+               'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
+               'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
+               (symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=)))
+
+fnc-car
+fnc-cdr
+fnc-cons
+fnc-display
+fnc-env
+fnc-length
+fnc-list
+fnc-list?
+fnc-newline
+fnc-not
+fnc-null?
+fnc-reverse

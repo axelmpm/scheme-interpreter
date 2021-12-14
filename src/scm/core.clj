@@ -127,6 +127,12 @@
 
       (igual? (first expre) 'define) (evaluar-define expre amb)
 
+      (igual? (first expre) 'if) (evaluar-if expre amb)
+
+      (igual? (first expre) 'or) (evaluar-or expre amb)
+
+      (igual? (first expre) 'set!) (evaluar-set! expre amb)
+
          ;
          ;
          ;
@@ -189,7 +195,11 @@
   "Aplica una funcion primitiva a una `lae` (lista de argumentos evaluados)."
   [fnc lae amb]
   (cond
+    (= fnc '+)            (fnc-sumar lae)
+    (= fnc '-)            (fnc-restar lae)
     (= fnc '<)            (fnc-menor lae)
+    (= fnc '>)            (fnc-mayor lae)
+    (= fnc '>=)           (fnc-mayor-o-igual lae)
 
     ;
     ;
@@ -197,8 +207,21 @@
     ;
     ;
 
-
     (igual? fnc 'append)  (fnc-append lae)
+    (igual? fnc 'car)  (fnc-car lae)
+    (igual? fnc 'cdr)  (fnc-cdr lae)
+    (igual? fnc 'cons)  (fnc-cons lae)
+    (igual? fnc 'display)  (fnc-display lae)
+    (igual? fnc 'env)  (fnc-env lae amb)
+    (igual? fnc 'equal?)  (fnc-equal? lae)
+    (igual? fnc 'length)  (fnc-length lae)
+    (igual? fnc 'list)  (fnc-list lae)
+    (igual? fnc 'list?)  (fnc-list? lae)
+    (igual? fnc 'newline)  (fnc-newline lae)
+    (igual? fnc 'not)  (fnc-not lae)
+    (igual? fnc 'null?)  (fnc-null? lae)
+    (igual? fnc 'read)  (fnc-read lae)
+    (igual? fnc 'reverse)  (fnc-reverse lae)
 
     ;
     ;
@@ -1058,9 +1081,6 @@
         false)
         
       false)))
-      
-  
-
 
 (defn well-formed? [expr]
   (cond
@@ -1075,7 +1095,7 @@
         res (list? expr)
         n (count expr)
         res (and res (= n 3))
-        res (and res (= (first expr) 'define))]
+        res (and res (igual? (first expr) 'define))]
        
     res))
   
@@ -1147,7 +1167,7 @@
   (let [res (list? expr)
         n (count expr)
         res (and res (> n 2))
-        res (and res (= (first expr) 'if))]
+        res (and res (igual? (first expr) 'if))]
     res))
 
 (defn eval-or-set [expr amb]
@@ -1238,5 +1258,5 @@
   )
 )
 
-
+true
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
