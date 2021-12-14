@@ -4,74 +4,60 @@
 
 (deftest leer-entrada-test
 
-  (testing "lectura sin parentesis ni salto de linea"
+  (testing "case 1"
     (let [
           input "123"
-          expected "123"
+          expected 123
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
     
   
 
-  (testing "lectura sin parentesis con salto de linea"
+  (testing "case 2"
     (let [
           input "123\n456"
-          expected "123"
+          expected 123
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
     
   
 
-  (testing "lectura con parentesis balanceado sin salto de linea"
-    (let [
-          input "(hola mundo)"
-          expected "(hola mundo)"
+  (testing "case 3"
+    (let [input "(hola mundo)"
+          expected '(hola mundo)
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
     
   
 
-  (testing "lectura con parentesis balanceado con salto de linea"
-    (let [
-          input "(hola\n mundo)"
-          expected "(hola mundo)"
+  (testing "case 4"
+    (let [input "(hola\n mundo)"
+          expected '(hola mundo)
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))
     )
   ) 
 
-  (testing "lectura con parentesis balanceado con salto de linea sin separacion"
+  (testing "case 5"
     (let [
           input "(hola\nmundo)"
-          expected "(hola mundo)"
+          expected '(hola mundo)
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
     
-  (testing "lectura multilinea"
-    (let [
-          input "(123\n456\n789\n101112\n131415)"
-          expected "(123 456 789 101112 131415)"
-          read (with-in-str input (leer-entrada))
-          ]
+  (testing "case 6"
+    (let [input "(123\n456\n789\n101112\n131415)"
+          expected '(123 456 789 101112 131415)
+          read (with-in-str input (leer-entrada))]
       (is (= read expected))
     )
-  )     
-  
-
-  (testing "lectura con parentesis de mas sin salto de linea"
-    (let [
-          input "(hola mundo))"
-          expected "(hola mundo))"
-          read (with-in-str input (leer-entrada))
-         ]
-          
-      (is (= read expected)))))    
-  
+  )
+)
 
 (deftest verificar-parentesis-test
 
@@ -241,23 +227,46 @@
           res (proteger-bool-en-str string)]
 
       (is (= res expected))))
+  
+  (testing "case 4"
+    (let [string "(+ 1 2)"
+          expected "(+ 1 2)"
+          res (proteger-bool-en-str string)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [string '(+ 1 2)
+          expected "(+ 1 2)"
+          res (proteger-bool-en-str string)]
+
+      (is (= res expected))))
+
 )
 
 (deftest restaurar-bool-test
 
   (testing "case 1"
     (let [string "(and (or #F #f #t #T) #T)"
-          expected "(and (or #F #f #t #T) #T)"
+          expected '(and (or (symbol "#F") (symbol "#f") (symbol "#t") (symbol "#T")) (symbol "#T"))
           res (restaurar-bool (read-string (proteger-bool-en-str string)))]
 
       (is (= res expected))))
 
   (testing "case 2"
     (let [string "(and (or %F %f %t %T) %T)"
-          expected "(and (or #F #f #t #T) #T)"
+          expected '(and (or (symbol "#F") (symbol "#f") (symbol "#t") (symbol "#T")) (symbol "#T"))
           res (restaurar-bool (read-string string))]
 
       (is (= res expected))))
+  
+  (testing "case 3"
+    (let [string "(+ 1 2)"
+          expected '(+ 1 2)
+          res (restaurar-bool (read-string string))]
+
+      (is (= res expected))))
+
 )
 
 (deftest igual?-test
@@ -416,7 +425,7 @@
   (testing "case 1"
     (let [args '()
           input "(hola\nmundo)"
-          expected "(hola mundo)"
+          expected '(hola mundo)
           res (with-in-str input (fnc-read args))]
 
       (is (= res expected))))

@@ -104,10 +104,10 @@
      (let [renglon (leer-entrada)]                       ; READ
        (if (= renglon "")
          (repl amb)
-         (let [str-corregida (proteger-bool-en-str renglon)
-               cod-en-str (read-string str-corregida)
-               cod-corregido (restaurar-bool cod-en-str)
-               res (evaluar cod-corregido amb)]     ; EVAL
+         (let [str-corregida (proteger-bool-en-str (spy "renglon" renglon))
+               cod-en-str (read-string (spy "str-corregida" str-corregida))
+               cod-corregido (restaurar-bool (spy "cod-en-str" cod-en-str))
+               res (evaluar (spy "cod-corregido" cod-corregido) amb)]     ; EVAL
            (if (nil? (second res))              ;   Si el ambiente del resultado es `nil`, es porque se ha evaluado (exit)
              'Goodbye!                        ;   En tal caso, sale del REPL devolviendo Goodbye!.
              (do (imprimir (first res))       ; PRINT
@@ -586,7 +586,7 @@
   (let [read (read-line)
         complete_string (merge_strings prev read)]
     (cond
-      (<= (verificar-parentesis complete_string) 0) complete_string
+      (<= (verificar-parentesis complete_string) 0) (read-string complete_string)
       :else (aux-leer-entrada complete_string))))
 
 (defn leer-entrada []
@@ -700,34 +700,9 @@
   (if (list? arg) 
     (or (= (symbol ";ERROR:") (first arg)) (= (symbol ";WARNING:") (first arg)))
     false))
-  
-(defn parse-string
-  ([string] (seq string))
 
-  ([special string]
-     (let [
-           string (seq string)
-           n (count string)]
-          
-       (filter (fn [x] (not (empty? x)))
-               (for [i (range 0 n)]
-                 (let [
-                       e (nth string i)
-                       prev-idx (dec i)
-                       sig-idx (inc i)
-                       prev (if (>= prev-idx 0) (nth string prev-idx) e)
-                       sig (if (< sig-idx n) (nth string sig-idx) e)]
-                      
-                   (cond
-                     (= e special) (apply str (list special sig))
-                     (= prev special) '()
-                     :else (str e))))))
-  )
-)
-
-
-(defn replace-string-with [string special old new]
-  (apply str (map (fn [x] (if (= x old) new x)) (parse-string special string))))
+;(defn replace-string-with [string special old new]
+  ;(apply str (map (fn [x] (if (= x old) new x)) (parse-string special string))))
 
 ; user=> (proteger-bool-en-str "(or #F #f #t #T)")
 ; "(or %F %f %t %T)"
@@ -738,13 +713,12 @@
 (defn proteger-bool-en-str [string]
   "Cambia, en una cadena, #t por %t y #f por %f (y sus respectivas versiones en mayusculas), para poder aplicarle read-string."
   
-  (let [
-        string (replace-string-with string \# "#t" "%t")
-        string (replace-string-with string \# "#T" "%T")
-        string (replace-string-with string \# "#f" "%f")
-        string (replace-string-with string \# "#F" "%F")]
-        
-    string))
+  (let [string (str string)
+        string (clojure.string/replace string "#t" "%t")
+        string (clojure.string/replace string "#T" "%T")
+        string (clojure.string/replace string "#f" "%f")
+        string (clojure.string/replace string "#F" "%F")]
+      string))
     
 
 
@@ -756,13 +730,13 @@
 
   "Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas)."
   
-    (let [
-          string (str string)
-          string (replace-string-with string \% "%t" "#t")
-          string (replace-string-with string \% "%T" "#T")
-          string (replace-string-with string \% "%f" "#f")
-          string (replace-string-with string \% "%F" "#F")]
-      string))
+    (let [string (str string)
+          string (clojure.string/replace string "%t" (str '(symbol "#t")))
+          string (clojure.string/replace string "%T" (str '(symbol "#T")))
+          string (clojure.string/replace string "%f" (str '(symbol "#f")))
+          string (clojure.string/replace string "%F" (str '(symbol "#F")))]
+      (read-string string)))
+      ;string))
   
 
 ; user=> (igual? 'if 'IF)
