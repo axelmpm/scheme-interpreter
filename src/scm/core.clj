@@ -116,6 +116,14 @@
        (imprimir (generar-mensaje-error :error (get (Throwable->map e) :cause)))
        (repl amb)))))                        ; LOOP (Se llama a si misma con el ambiente intacto)
 
+(defn is-symbol-true? [arg]
+  (or (= (symbol "#t") arg) (= (symbol "#T") arg)))
+
+(defn is-symbol-false? [arg]
+  (or (= (symbol "#f") arg) (= (symbol "#F") arg)))
+
+(defn is-boolean-symbol? [arg]
+  (or (is-symbol-false? arg) (is-symbol-true? arg)))
 
 (defn evaluar
   "Evalua una expresion `expre` en un ambiente. Devuelve un lista con un valor resultante y un ambiente."
@@ -123,15 +131,19 @@
   (if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
     (list expre amb)                                      ; de lo contrario, evaluarla
     (cond
+      (is-boolean-symbol? expre)     (list expre amb)
       (not (seq? expre))             (evaluar-escalar expre amb)
-
       (igual? (first expre) 'define) (evaluar-define expre amb)
-
       (igual? (first expre) 'if) (evaluar-if expre amb)
-
       (igual? (first expre) 'or) (evaluar-or expre amb)
-
       (igual? (first expre) 'set!) (evaluar-set! expre amb)
+
+      (igual? (first expre) 'cond) (evaluar-cond expre amb)
+      (igual? (first expre) 'set!) (evaluar-set! expre amb)
+      (igual? (first expre) 'exit) (evaluar-exit expre amb)
+      (igual? (first expre) 'lambda) (evaluar-lambda expre amb)
+      (igual? (first expre) 'load) (evaluar-load expre amb)
+      (igual? (first expre) 'quote) (evaluar-quote expre amb)
 
          ;
          ;
@@ -697,7 +709,7 @@
 
   "Devuelve true o false, segun sea o no el arg. una lista con `;ERROR:` o `;WARNING:` como primer elemento."
 
-  (if (list? arg) 
+  (if (seq? arg) 
     (or (= (symbol ";ERROR:") (first arg)) (= (symbol ";WARNING:") (first arg)))
     false))
 
@@ -753,7 +765,7 @@
   "Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)"
   (cond
     (and (symbol? x) (symbol? y)) (= (clojure.string/lower-case (str x)) (clojure.string/lower-case (str y)))
-    (and (list? x) (list? y)) 
+    (and (seq? x) (seq? y)) 
     (if (= (count x) (count y))
       (every? (fn [e] (igual? (first e) (second e))) (map (fn [a b] (list a b) ) x y))
       false)
@@ -771,7 +783,7 @@
 (defn fnc-append [lists]
 
   "Devuelve el resultado de fusionar listas."
-  (let [not-list (filter (fn [x] (not (list? x))) lists)]
+  (let [not-list (filter (fn [x] (not (seq? x))) lists)]
       (if (empty? not-list)
         (reduce (fn [a b] (concat a b)) lists)
         (generar-mensaje-error :wrong-type-arg fnc-append (first not-list)))))
@@ -1025,6 +1037,7 @@
 ; ("hola" (x 6 y 11 z "hola"))
 ; user=> (evaluar-escalar 'n '(x 6 y 11 z "hola"))
 ; ((;ERROR: unbound variable: n) (x 6 y 11 z "hola"))
+
 (defn evaluar-escalar [key amb]
   "Evalua una expresion escalar. Devuelve una lista con el resultado y un ambiente."
   (if (symbol? key) (list (buscar key amb) amb) (list key amb)))
@@ -1049,7 +1062,7 @@
 (defn symbol-or-fn? [arg]
   (if (symbol? arg)
     true
-    (if (list? arg)
+    (if (seq? arg)
       (if (= (count arg) 2)
         (and (symbol? (first arg)) (symbol? (second arg)))
         false)
@@ -1058,7 +1071,7 @@
 
 (defn well-formed? [expr]
   (cond
-    (list? expr) (and (not (empty? expr)) (every? well-formed? expr))
+    (seq? expr) (and (not (empty? expr)) (every? well-formed? expr))
     :else true))
     
   
@@ -1066,7 +1079,7 @@
 (defn well-formed-define-expr? [expr]
 
   (let [
-        res (list? expr)
+        res (seq? expr)
         n (count expr)
         res (and res (= n 3))
         res (and res (igual? (first expr) 'define))]
@@ -1079,7 +1092,7 @@
 
   (let [
         key (nth expr 1)
-        val (nth expr 2)]
+        val (first (evaluar (nth expr 2) amb))]
   
     (if (symbol? key)
       (list (symbol "#<unspecified>") (actualizar-amb amb key val))
@@ -1134,19 +1147,16 @@
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
 
 (defn is-false? [arg]
-  (or (or (= (symbol "#f") arg) (= 0 arg)) false))
+  (or (is-symbol-false? arg) (= 0 arg) false))
 
 (defn well-formed-eval-if? [expr]
 
-  (let [res (list? expr)
+  (let [
+        res (seq? expr)
         n (count expr)
-        res (and res (> n 2))
+        res (and res (or (= n 3) (= n 4)))
         res (and res (igual? (first expr) 'if))]
     res))
-
-(defn eval-or-set [expr amb]
-  (if (list? expr) (evaluar-set! expr amb) (evaluar-escalar expr amb))
-  )
 
 (defn evaluar-if [expr amb]
 
@@ -1156,15 +1166,15 @@
    (if (well-formed-eval-if? expr)
      (let [
            n (count expr)
-           condition (nth expr 1)
+           condition (first (evaluar (nth expr 1) amb))
            if-true-val (nth expr 2)
-           if-false-val (if (> n 3) (nth expr 3) nil)]
+           if-false-val (if (> n 3) (nth expr 3) nil)
+           res (is-false? condition)
+           ]
      
        (if (is-false? condition)
-         (if (nil? if-false-val) (list (symbol "#<unspecified>") amb) (eval-or-set if-false-val amb))
-         (eval-or-set if-true-val amb)))
-       
-     
+         (if (nil? if-false-val) (list (symbol "#<unspecified>") amb) (evaluar if-false-val amb))
+         (evaluar if-true-val amb)))     
      malformed-expr-error)))
    
   
@@ -1184,22 +1194,17 @@
 
   "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
 
-  (let [n (count expr)
-        arg1 (if (> n 1) (nth expr 1) nil)
-        arg2 (if (> n 2) (nth expr 2) nil)
+  (let [
+        args (next expr)
+        arg1 (if (empty? args) nil (first (evaluar (first args) amb)))
        ]
     (cond
-     (nil? arg1) (list (symbol "#f") amb)
-     (nil? arg2) (list arg1 amb)
-     :else (cond
-             (and (is-false? arg1) (is-false? arg2)) (list (symbol "#f") amb)
-             (is-false? arg1) (list arg2 amb)
-             :else (list arg1 amb)
-           )
+      (nil? arg1) (list (symbol "#f") amb)
+      (is-false? arg1) (evaluar-or (concat (list 'or) (next args)) amb)
+      :else (list arg1 amb)
     )
   )
 )
-
 
 ; user=> (evaluar-set! '(set! x 1) '(x 0))
 ; (#<unspecified> (x 1))
@@ -1227,7 +1232,7 @@
       (> n 3) malformed-expr-error
       (not (symbol? key)) missing-var-error
       (not (isin? (get-keys amb) key)) unbound-error
-      :else (list (symbol "#<unspecified>") (actualizar-amb amb key val))
+      :else (list (symbol "#<unspecified>") (actualizar-amb amb key (first (evaluar val amb))))
     )    
   )
 )

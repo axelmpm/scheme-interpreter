@@ -833,6 +833,14 @@
           res (evaluar-escalar key amb)]
 
       (is (= res expected))))
+  
+  (testing "case 6"
+    (let [key 'y
+          amb '(x 6 y 11 z "hola")
+          expected (list 11 amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
 
 )
 
@@ -1057,4 +1065,49 @@
 
       (is (= res expected))))
   
+)
+
+(deftest is-boolean-symbol?-test
+
+  (testing "case 1"
+    (let [expr (symbol "#f")
+          expected true
+          res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
+  
+  (testing "case 2"
+    (let [expr (symbol "#F")
+          expected true
+          res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
+  
+  (testing "case 3"
+    (let [expr (symbol "#t")
+          expected true
+          res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
+  
+  (testing "case 4"
+    (let [expr (symbol "#T")
+          expected true
+          res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
+  
+  (testing "case 5"
+    (let [expr 5
+          expected false
+          res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
+  
+  (testing "case 6"
+    (let [expr (list (symbol "#T") 5)
+          expected false
+          res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
 )
