@@ -929,6 +929,14 @@
 
       (is (= res expected))))
 
+  (testing "case 10"
+    (let [expr '(define (cargar) (display "->R: "))
+          amb '(x 1)
+          expected (list (symbol "#<unspecified>") '(x 1 cargar (lambda () (display "->R: "))))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+
 )
 
 (deftest evaluar-if-test

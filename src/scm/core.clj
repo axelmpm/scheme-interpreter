@@ -104,10 +104,10 @@
      (let [renglon (leer-entrada)]                       ; READ
        (if (= renglon "")
          (repl amb)
-         (let [str-corregida (proteger-bool-en-str (spy "renglon" renglon))
-               cod-en-str (read-string (spy "str-corregida"str-corregida))
-               cod-corregido (restaurar-bool (spy "cod-en-str"cod-en-str))
-               res (evaluar (spy "cod-corregido" cod-corregido) amb)]     ; EVAL
+         (let [str-corregida (proteger-bool-en-str renglon)
+               cod-en-str (read-string str-corregida)
+               cod-corregido (restaurar-bool cod-en-str)
+               res (evaluar cod-corregido amb)]     ; EVAL
            (if (nil? (second res))              ;   Si el ambiente del resultado es `nil`, es porque se ha evaluado (exit)
              'Goodbye!                        ;   En tal caso, sale del REPL devolviendo Goodbye!.
              (do (imprimir (first res))       ; PRINT
@@ -170,11 +170,11 @@
       :else (let [res-eval-1 (evaluar (first expre) amb)
                   res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] 
                                                  (cons 
-                                                  (second res-eval-3) (concat (next x) (list (first res-eval-3)))
-                                                 )
-                                               ))
-                                     (cons (list (second res-eval-1)) (next expre))
-                             )]
+                                                  (second res-eval-3) (concat (next x) (list (first res-eval-3))))))
+                                                 
+                                               
+                                     (cons (list (second res-eval-1)) (next expre)))]
+                             
               (aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
 
 
@@ -696,9 +696,9 @@
     (= arg (symbol "#f")) (symbol "#f")
     (= arg (symbol "#F")) (symbol "#f")
     (= arg (symbol "#t")) (symbol "#t")
-    (= arg (symbol "#T")) (symbol "#t")
-  )
-)
+    (= arg (symbol "#T")) (symbol "#t")))
+  
+
 
 
 (defn actualizar-amb [amb key val]
@@ -708,10 +708,13 @@
 
   (let [key-lower-case  (read-string (clojure.string/lower-case (str key)))]
     (if (error? val)
-    amb
-    (if (isin? (get-keys amb) key-lower-case)
-      (replace-val amb key-lower-case val)
-      (concat amb (list key-lower-case val))))))
+      amb
+      (if (isin? (get-keys amb) key-lower-case)
+        (replace-val amb key-lower-case val)
+        (concat amb (list key-lower-case val)))  
+    )
+  )
+)
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
@@ -723,8 +726,8 @@
    y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
   (let [
         key-lower-case  (if (is-boolean-symbol? key) (lower-case-bool key) (read-string (clojure.string/lower-case (str key))))
-        matches (match-by-element (get-keys-and-index amb) key-lower-case)
-       ]
+        matches (match-by-element (get-keys-and-index amb) key-lower-case)]
+       
     (if (empty? matches)
       (generar-mensaje-error :unbound-variable key)
       (nth amb (inc (first matches))))))
@@ -903,7 +906,7 @@
           non-numeric(filter (fn [x] (not (number? x))) args)
           first-arg (first args)
           first-non-numeric (first non-numeric)
-          ]
+         ]
           (if (empty? non-numeric)
               (reduce (fn [a b] (+ a b)) args)
               (if (number? first-arg)
@@ -912,6 +915,9 @@
     )
   )
 )
+    
+  
+
     
   
 
@@ -944,16 +950,16 @@
       :else (let [
                   non-numeric (filter (fn [x] (not (number? x))) args)
                   first-arg (first args)
-                  first-non-numeric (first non-numeric)    
-                 ]
-        (if (empty? non-numeric)
-          (reduce (fn [a b] (- a b)) args)
-          (if (number? first-arg)
-            (generar-mensaje-error :wrong-type-arg2 - first-non-numeric)
-            (generar-mensaje-error :wrong-type-arg1 - first-arg))
-        ))
-    )
-)
+                  first-non-numeric (first non-numeric)]
+            (if (empty? non-numeric)
+              (reduce (fn [a b] (- a b)) args)
+              (if (number? first-arg)
+                (generar-mensaje-error :wrong-type-arg2 - first-non-numeric)
+                (generar-mensaje-error :wrong-type-arg1 - first-arg))))
+))
+        
+    
+
           
         
       
@@ -1079,11 +1085,11 @@
         (if (symbol? key)
           (list res amb)
           (list key amb))
-        (list res amb)
-      )
-    )
-  )
-)
+        (list res amb)))))
+      
+    
+  
+
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
@@ -1102,54 +1108,34 @@
 ; user=> (evaluar-define '(define 2 x) '(x 1))
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
 
-(defn symbol-or-fn? [arg]
-  (if (symbol? arg)
-    true
-    (if (seq? arg)
-      (if (>= (count arg) 1)
-        (and (symbol? (first arg)) (symbol? (second arg)))
-        false)
-        
-      false)))
+(defn is-func? [head]
+    (and (seq? head) (not (empty? head)) (symbol? (first head))))
 
-(defn well-formed? [expr]
-  (cond
-    (seq? expr) (not (empty? expr))
-    :else true))
-    
-  
+(defn is-var? [head body]
+  (and (symbol? head) (= (count body) 1)))
+
 
 (defn well-formed-define-expr? [expr]
 
   (let [
-        res (seq? expr)
         n (count expr)
-        res (and res (= n 3))
-        res (and res (igual? (first expr) 'define))]
-       
+        head (if (>= n 2) (second expr) nil)
+        body (rest (rest expr))
+        res (seq? expr)
+        res (and res (>= n 3))
+        res (and res (igual? (first expr) 'define))
+        res (and res (if (nil? head) false (if (symbol? head) (= n 3) true)))
+       ]
     res))
-  
 
+(defn define-func [name args body amb]
+  (let [lambda-body (concat (list 'lambda args) body)]
+    (list (symbol "#<unspecified>") (actualizar-amb amb name lambda-body)))
+)
 
-(defn aux-evaluar-define [expr amb]
+(defn define-var [var val amb]
+  (list (symbol "#<unspecified>") (actualizar-amb amb var (first (evaluar val amb)))))
 
-  (let [
-        key (nth expr 1)
-        val (first (evaluar (nth expr 2) amb))]
-  
-    (if (symbol? key)
-      (list (symbol "#<unspecified>") (actualizar-amb amb key val))
-      (let [
-            key (first (nth expr 1))
-            args (rest (nth expr 1))
-            body (nth expr 2)
-            val (list 'lambda args body)]
-      
-        (list (symbol "#<unspecified>") (actualizar-amb amb key val))))))
-        
-    
-    
-  
 
 (defn evaluar-define [expr amb]
 
@@ -1157,16 +1143,24 @@
 
   (let [
         malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
-        missing-var-error (list (generar-mensaje-error :bad-variable 'define expr) amb)
-        body (next expr)
-        keys (get-keys body)]
-  
+        missing-var-error (list (generar-mensaje-error :bad-variable 'define expr) amb)]
+
    (if (well-formed-define-expr? expr)
-       (if (and (every? well-formed? body) (every? symbol-or-fn? keys))
-         (aux-evaluar-define expr amb)
-         missing-var-error)
-       
-       malformed-expr-error)))
+     (let [head (second expr)
+           body (rest (rest expr))]
+       (cond
+         (is-func? head) (let [name (first head) args (rest head)] (define-func name args body amb))
+         (is-var? head body) (let [var head val (first body)] (define-var var val amb))
+         :else missing-var-error
+       )
+     )
+     malformed-expr-error
+   )
+  )
+)
+   
+  
+
    
   
 
@@ -1210,8 +1204,8 @@
            n (count expr)
            condition (first (evaluar (nth expr 1) amb))
            if-true-val (nth expr 2)
-           if-false-val (if (> n 3) (nth expr 3) nil)
-           ]
+           if-false-val (if (> n 3) (nth expr 3) nil)]
+           
      
        (if (is-false? condition)
          (if (nil? if-false-val) (list (symbol "#<unspecified>") amb) (evaluar if-false-val amb))
@@ -1237,15 +1231,15 @@
 
   (let [
         args (next expr)
-        arg1 (if (empty? args) nil (first (evaluar (first args) amb)))
-       ]
+        arg1 (if (empty? args) nil (first (evaluar (first args) amb)))]
+       
     (cond
       (nil? arg1) (list (symbol "#f") amb)
       (is-false? arg1) (evaluar-or (concat (list 'or) (next args)) amb)
-      :else (list arg1 amb)
-    )
-  )
-)
+      :else (list arg1 amb))))
+    
+  
+
 
 ; user=> (evaluar-set! '(set! x 1) '(x 0))
 ; (#<unspecified> (x 1))
@@ -1267,18 +1261,18 @@
         val (if (> n 2) (nth expr 2) nil)
         malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'set! expr) amb)
         missing-var-error (list (generar-mensaje-error :bad-variable 'set! key) amb)
-        unbound-error (list (generar-mensaje-error :unbound-variable key) amb)
-       ]
+        unbound-error (list (generar-mensaje-error :unbound-variable key) amb)]
+       
     (cond
       (nil? key) malformed-expr-error
       (nil? val) malformed-expr-error
       (> n 3) malformed-expr-error
       (not (symbol? key)) missing-var-error
       (not (isin? (get-keys amb) key-lower-case)) unbound-error
-      :else (list (symbol "#<unspecified>") (actualizar-amb amb key (first (evaluar val amb))))
-    )    
-  )
-)
+      :else (list (symbol "#<unspecified>") (actualizar-amb amb key (first (evaluar val amb)))))))
+        
+  
+
 
 true
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
