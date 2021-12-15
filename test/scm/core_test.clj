@@ -7,7 +7,7 @@
   (testing "case 1"
     (let [
           input "123"
-          expected 123
+          expected "123"
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
@@ -17,7 +17,7 @@
   (testing "case 2"
     (let [
           input "123\n456"
-          expected 123
+          expected "123"
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
@@ -26,7 +26,7 @@
 
   (testing "case 3"
     (let [input "(hola mundo)"
-          expected '(hola mundo)
+          expected "(hola mundo)"
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
@@ -35,7 +35,7 @@
 
   (testing "case 4"
     (let [input "(hola\n mundo)"
-          expected '(hola mundo)
+          expected "(hola mundo)"
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))
@@ -45,14 +45,14 @@
   (testing "case 5"
     (let [
           input "(hola\nmundo)"
-          expected '(hola mundo)
+          expected "(hola mundo)"
           read (with-in-str input (leer-entrada))]
           
       (is (= read expected))))
     
   (testing "case 6"
     (let [input "(123\n456\n789\n101112\n131415)"
-          expected '(123 456 789 101112 131415)
+          expected "(123 456 789 101112 131415)"
           read (with-in-str input (leer-entrada))]
       (is (= read expected))
     )
@@ -246,23 +246,25 @@
 
 (deftest restaurar-bool-test
 
+  ;(comment
+
   (testing "case 1"
     (let [string "(and (or #F #f #t #T) #T)"
-          expected '(and (or (symbol "#F") (symbol "#f") (symbol "#t") (symbol "#T")) (symbol "#T"))
+          expected (list 'and (list 'or (symbol "#F") (symbol "#f") (symbol "#t") (symbol "#T")) (symbol "#T"))
           res (restaurar-bool (read-string (proteger-bool-en-str string)))]
 
       (is (= res expected))))
 
   (testing "case 2"
     (let [string "(and (or %F %f %t %T) %T)"
-          expected '(and (or (symbol "#F") (symbol "#f") (symbol "#t") (symbol "#T")) (symbol "#T"))
+          expected (list 'and (list 'or (symbol "#F") (symbol "#f") (symbol "#t") (symbol "#T")) (symbol "#T"))
           res (restaurar-bool (read-string string))]
 
       (is (= res expected))))
   
   (testing "case 3"
     (let [string "(+ 1 2)"
-          expected '(+ 1 2)
+          expected (list '+ 1 2)
           res (restaurar-bool (read-string string))]
 
       (is (= res expected))))
@@ -790,7 +792,8 @@
           expected (generar-mensaje-error :wrong-type-arg2 >= 'A)
           res (fnc-mayor-o-igual args)]
 
-      (is (= res expected)))))
+      (is (= res expected))))
+)
 
 (deftest evaluar-escalar-test
 
@@ -838,6 +841,14 @@
     (let [key 'y
           amb '(x 6 y 11 z "hola")
           expected (list 11 amb)
+          res (evaluar-escalar key amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [key (symbol "#F")
+          amb (list (symbol "#f") (symbol "#f") 'x 6 'y 11 'z "hola")
+          expected (list (symbol "#f") amb)
           res (evaluar-escalar key amb)]
 
       (is (= res expected))))
@@ -906,6 +917,14 @@
     (let [expr '(define 2 x)
           amb '(x 1)
           expected (list (generar-mensaje-error :bad-variable 'define '(define 2 x)) '(x 1))
+          res (evaluar-define expr amb)]
+
+      (is (= res expected))))
+  
+  (testing "case 9"
+    (let [expr '(define (sumar a b) (+ a b))
+          amb '(x 1)
+          expected (list (symbol "#<unspecified>") '(x 1 sumar (lambda (a b) (+ a b))))
           res (evaluar-define expr amb)]
 
       (is (= res expected))))
@@ -1065,6 +1084,14 @@
 
       (is (= res expected))))
   
+    (testing "case 6"
+      (let [expr '(set! N 1)
+            amb '(n 0)
+            expected (list (symbol "#<unspecified>") '(n 1))
+            res (evaluar-set! expr amb)]
+
+        (is (= res expected))))
+  
 )
 
 (deftest is-boolean-symbol?-test
@@ -1108,6 +1135,72 @@
     (let [expr (list (symbol "#T") 5)
           expected false
           res (is-boolean-symbol? expr)]
+
+      (is (= res expected))))
+)
+
+(deftest replace-vec-test
+
+  (testing "case 1"
+    (let [vec '(a b c a)
+          old 'a
+          new 'd
+          expected '(d b c d)
+          res (replace-vec vec old new)]
+
+      (is (= res expected))))
+
+  (testing "case 2"
+    (let [vec '(a b c a)
+          old 'a
+          new 'a
+          expected '(a b c a)
+          res (replace-vec vec old new)]
+
+      (is (= res expected))))
+
+  (testing "case 3"
+    (let [vec '(a b c a)
+          old 'a
+          new 'b
+          expected '(b b c b)
+          res (replace-vec vec old new)]
+
+      (is (= res expected))))
+
+  (testing "case 4"
+    (let [vec '(((a) b) (c a))
+          old 'a
+          new 'd
+          expected '(((d) b) (c d))
+          res (replace-vec vec old new)]
+
+      (is (= res expected))))
+
+  (testing "case 5"
+    (let [vec '((a) b (c a))
+          old 'a
+          new 'a
+          expected '((a) b (c a))
+          res (replace-vec vec old new)]
+
+      (is (= res expected))))
+
+  (testing "case 6"
+    (let [vec '(((a) b) (c a))
+          old 'a
+          new 'b
+          expected '(((b) b) (c b))
+          res (replace-vec vec old new)]
+
+      (is (= res expected))))
+  
+  (testing "case 7"
+    (let [vec '((("#f") b) ("#f" a))
+          old "#f"
+          new '(symbol "#f")
+          expected '((((symbol "#f")) b) ((symbol "#f") a))
+          res (replace-vec vec old new)]
 
       (is (= res expected))))
 )

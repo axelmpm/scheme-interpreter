@@ -105,8 +105,8 @@
        (if (= renglon "")
          (repl amb)
          (let [str-corregida (proteger-bool-en-str (spy "renglon" renglon))
-               cod-en-str (read-string (spy "str-corregida" str-corregida))
-               cod-corregido (restaurar-bool (spy "cod-en-str" cod-en-str))
+               cod-en-str (read-string (spy "str-corregida"str-corregida))
+               cod-corregido (restaurar-bool (spy "cod-en-str"cod-en-str))
                res (evaluar (spy "cod-corregido" cod-corregido) amb)]     ; EVAL
            (if (nil? (second res))              ;   Si el ambiente del resultado es `nil`, es porque se ha evaluado (exit)
              'Goodbye!                        ;   En tal caso, sale del REPL devolviendo Goodbye!.
@@ -131,20 +131,33 @@
   (if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
     (list expre amb)                                      ; de lo contrario, evaluarla
     (cond
-      (is-boolean-symbol? expre)     (list expre amb)
-      (not (seq? expre))             (evaluar-escalar expre amb)
+      ;(spy "(not (seq? expre))"(not (seq? (spy "EVAL expre" expre))))           (spy "(evaluar-escalar expre amb)"(evaluar-escalar expre amb))
+      ;(spy "(igual? (first expre) 'define)"(igual? (first expre) 'define)) (spy "(evaluar-define expre amb)"(evaluar-define expre amb))
+      ;(spy "(igual? (first expre) 'if)"(igual? (first expre) 'if)) (spy "(evaluar-if expre amb)"(evaluar-if expre amb))
+      ;(spy "(igual? (first expre) 'or)"(igual? (first expre) 'or)) (spy "(evaluar-or expre amb)"(evaluar-or expre amb))
+      ;(spy "(igual? (first expre) 'set!)"(igual? (first expre) 'set!)) (spy "(evaluar-set! expre amb)"(evaluar-set! expre amb))
+      ;(spy "(igual? (first expre) 'eval)"(igual? (first expre) 'eval)) (spy "(evaluar-eval expre amb)"(evaluar-eval expre amb))
+      ;(spy "(igual? (first expre) 'cond)"(igual? (first expre) 'cond)) (spy "(evaluar-cond expre amb)"(evaluar-cond expre amb))
+      ;(spy "(igual? (first expre) 'exit)"(igual? (first expre) 'exit)) (spy "(evaluar-exit expre amb)"(evaluar-exit expre amb))
+      ;(spy "(igual? (first expre) 'lambda)"(igual? (first expre) 'lambda)) (spy "(evaluar-lambda expre amb)"(evaluar-lambda expre amb))
+      ;(spy "(igual? (first expre) 'load)"(igual? (first expre) 'load)) (spy "(evaluar-load expre amb)"(evaluar-load expre amb))
+      ;(spy "(igual? (first expre) 'quote)"(igual? (first expre) 'quote)) (spy "(evaluar-quote expre amb)"(evaluar-quote expre amb))
+
+      ;(spy "(not (seq? expre))" (not (seq? (spy "EVAL expre" expre))))           (evaluar-escalar expre amb)
+      (not (seq? expre))           (evaluar-escalar expre amb)
       (igual? (first expre) 'define) (evaluar-define expre amb)
       (igual? (first expre) 'if) (evaluar-if expre amb)
       (igual? (first expre) 'or) (evaluar-or expre amb)
       (igual? (first expre) 'set!) (evaluar-set! expre amb)
-
+      (igual? (first expre) 'eval) (evaluar-eval expre amb)
       (igual? (first expre) 'cond) (evaluar-cond expre amb)
-      (igual? (first expre) 'set!) (evaluar-set! expre amb)
       (igual? (first expre) 'exit) (evaluar-exit expre amb)
       (igual? (first expre) 'lambda) (evaluar-lambda expre amb)
       (igual? (first expre) 'load) (evaluar-load expre amb)
       (igual? (first expre) 'quote) (evaluar-quote expre amb)
 
+      
+      
          ;
          ;
          ;
@@ -155,7 +168,13 @@
          ;
 
       :else (let [res-eval-1 (evaluar (first expre) amb)
-                  res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
+                  res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] 
+                                                 (cons 
+                                                  (second res-eval-3) (concat (next x) (list (first res-eval-3)))
+                                                 )
+                                               ))
+                                     (cons (list (second res-eval-1)) (next expre))
+                             )]
               (aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
 
 
@@ -598,7 +617,7 @@
   (let [read (read-line)
         complete_string (merge_strings prev read)]
     (cond
-      (<= (verificar-parentesis complete_string) 0) (read-string complete_string)
+      (<= (verificar-parentesis complete_string) 0) complete_string
       :else (aux-leer-entrada complete_string))))
 
 (defn leer-entrada []
@@ -672,7 +691,14 @@
         (concat (take key-idx amb) (list key val) (take-last tail-amount-after-key-val amb)) 
         amb)))
     
-  
+(defn lower-case-bool [arg]
+  (cond
+    (= arg (symbol "#f")) (symbol "#f")
+    (= arg (symbol "#F")) (symbol "#f")
+    (= arg (symbol "#t")) (symbol "#t")
+    (= arg (symbol "#T")) (symbol "#t")
+  )
+)
 
 
 (defn actualizar-amb [amb key val]
@@ -680,11 +706,12 @@
   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion."
 
-  (if (error? val)
+  (let [key-lower-case  (read-string (clojure.string/lower-case (str key)))]
+    (if (error? val)
     amb
-    (if (isin? (get-keys amb) key)
-      (replace-val amb key val)
-      (concat amb (list key val)))))
+    (if (isin? (get-keys amb) key-lower-case)
+      (replace-val amb key-lower-case val)
+      (concat amb (list key-lower-case val))))))
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
@@ -694,10 +721,13 @@
 
   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
    y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
-  (let [matches (match-by-element (get-keys-and-index amb) key)]
-    (if (not (empty? matches))
-      (nth amb (inc (first matches)))
-      (generar-mensaje-error :unbound-variable key))))
+  (let [
+        key-lower-case  (if (is-boolean-symbol? key) (lower-case-bool key) (read-string (clojure.string/lower-case (str key))))
+        matches (match-by-element (get-keys-and-index amb) key-lower-case)
+       ]
+    (if (empty? matches)
+      (generar-mensaje-error :unbound-variable key)
+      (nth amb (inc (first matches))))))
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
 ; true
@@ -732,6 +762,8 @@
         string (clojure.string/replace string "#F" "%F")]
       string))
     
+(defn replace-vec [vec old new]
+  (map (fn [x] (if (seq? x) (replace-vec x old new) (if (= x old) new x))) vec))
 
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
@@ -742,13 +774,12 @@
 
   "Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas)."
   
-    (let [string (str string)
-          string (clojure.string/replace string "%t" (str '(symbol "#t")))
-          string (clojure.string/replace string "%T" (str '(symbol "#T")))
-          string (clojure.string/replace string "%f" (str '(symbol "#f")))
-          string (clojure.string/replace string "%F" (str '(symbol "#F")))]
-      (read-string string)))
-      ;string))
+    (let [res string
+          res (replace-vec res '%t (symbol "#t"))
+          res (replace-vec res '%T (symbol "#T"))
+          res (replace-vec res '%f (symbol "#f"))
+          res (replace-vec res '%F (symbol "#F"))]
+       res))
   
 
 ; user=> (igual? 'if 'IF)
@@ -838,7 +869,7 @@
   "Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
   
   (cond
-    (empty? args) (leer-entrada)
+    (empty? args) (read-string (leer-entrada))
     (= (count args) 1) (generar-mensaje-error :io-ports-not-implemented read)
     (> (count args) 1) (generar-mensaje-error :wrong-number-args-prim-proc fnc-read)))
   
@@ -1040,7 +1071,19 @@
 
 (defn evaluar-escalar [key amb]
   "Evalua una expresion escalar. Devuelve una lista con el resultado y un ambiente."
-  (if (symbol? key) (list (buscar key amb) amb) (list key amb)))
+
+  (if (string? key)
+    (list key amb)
+    (let [res (buscar key amb)]
+      (if (error? res)
+        (if (symbol? key)
+          (list res amb)
+          (list key amb))
+        (list res amb)
+      )
+    )
+  )
+)
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
@@ -1063,7 +1106,7 @@
   (if (symbol? arg)
     true
     (if (seq? arg)
-      (if (= (count arg) 2)
+      (if (>= (count arg) 1)
         (and (symbol? (first arg)) (symbol? (second arg)))
         false)
         
@@ -1071,7 +1114,7 @@
 
 (defn well-formed? [expr]
   (cond
-    (seq? expr) (and (not (empty? expr)) (every? well-formed? expr))
+    (seq? expr) (not (empty? expr))
     :else true))
     
   
@@ -1115,8 +1158,7 @@
   (let [
         malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
         missing-var-error (list (generar-mensaje-error :bad-variable 'define expr) amb)
-        n (count expr)
-        body (take-last (dec n) expr)
+        body (next expr)
         keys (get-keys body)]
   
    (if (well-formed-define-expr? expr)
@@ -1169,7 +1211,6 @@
            condition (first (evaluar (nth expr 1) amb))
            if-true-val (nth expr 2)
            if-false-val (if (> n 3) (nth expr 3) nil)
-           res (is-false? condition)
            ]
      
        (if (is-false? condition)
@@ -1222,16 +1263,18 @@
   
   (let [n (count expr)
         key (if (> n 1) (nth expr 1) nil)
+        key-lower-case  (if (> n 1) (read-string (clojure.string/lower-case (str key))) nil)
         val (if (> n 2) (nth expr 2) nil)
         malformed-expr-error (list (generar-mensaje-error :missing-or-extra 'set! expr) amb)
         missing-var-error (list (generar-mensaje-error :bad-variable 'set! key) amb)
-        unbound-error (list (generar-mensaje-error :unbound-variable key) amb)]
+        unbound-error (list (generar-mensaje-error :unbound-variable key) amb)
+       ]
     (cond
       (nil? key) malformed-expr-error
       (nil? val) malformed-expr-error
       (> n 3) malformed-expr-error
       (not (symbol? key)) missing-var-error
-      (not (isin? (get-keys amb) key)) unbound-error
+      (not (isin? (get-keys amb) key-lower-case)) unbound-error
       :else (list (symbol "#<unspecified>") (actualizar-amb amb key (first (evaluar val amb))))
     )    
   )
